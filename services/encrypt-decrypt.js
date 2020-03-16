@@ -1,22 +1,25 @@
-const bcrypt = require('bcrypt');
-const SaltRounds = 10;
+const { genSalt, hash, compare } = require('bcrypt');
+const SaltRounds = process.env.SALT || 10;
 
-TaskSchema.pre('save', function(next){
-    bcrypt.genSalt(SaltRounds).then(salts =>{
-        bcrypt.hash(this.password, salts),then(hash =>{
-            this.password=hash;
-            next();
-        }).catch(err => next(err));
-    }).catch(err => next(err));
-});
-
-TaskSchema.methods.PasswordCompare = function(password, callback){
-    bcrypt.compare(password, this.password,(err, Coinciden) => {
-        if (err){
-            return callback(err);
-        }
-        callback(null, Coinciden)
-    } )
+const generateHash = async (password) => {
+    try {
+        const salt = await genSalt(SaltRounds)
+        const hashedPassword = await hash(password, salt);
+        return hashedPassword;
+    } catch (exception) {
+        throw exception;
+    }
+}
+const comparePasswords = async (hashedPassword, inputPassword) => {
+    try {
+        const areEqual = await compare(inputPassword, hashedPassword);
+        return areEqual
+    } catch (exception) {
+        throw exception;
+    }
 }
 
-module.export = Encrypt-decrypt;
+module.exports = {
+    generateHash,
+    comparePasswords
+}
